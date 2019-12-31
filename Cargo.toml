@@ -1,0 +1,9 @@
+[package]
+name = "dap"
+version = "0.1.0"
+authors = ["Iurii Shchekochikhin <amagex@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+json="0.12.0"
+
