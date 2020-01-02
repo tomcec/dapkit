@@ -3,10 +3,13 @@ use json::{array, object};
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
 
-fn read_request(stream: &TcpStream) -> dap::DapMessage {
+fn read_request(stream: &mut TcpStream) -> dap::DapMessage {
+    let mut msg: String = String::new();
+    stream.set_read_timeout(Some(std::time::Duration::new(1, 0)));
+    stream.read_to_string(&mut msg);
     dap::DapMessage {
         header: 3,
-        content: "321".to_string()
+        content: msg
     }
 }
 
@@ -27,7 +30,7 @@ fn main() -> std::io::Result<()> {
     let json_str = json::stringify(json);
     for stream in listener.incoming() {
         let mut io = stream?;
-        let msg: dap::DapMessage = read_request(&io);
+        let msg: dap::DapMessage = read_request(&mut io);
         io.write_all(
             json::stringify(object! {
                 "header" => msg.header,
