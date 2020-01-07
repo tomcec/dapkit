@@ -23,10 +23,12 @@ fn read_header(stream: &mut TcpStream) -> Result<i64, std::io::Error> {
 }
 
 fn read_request(stream: &mut TcpStream) -> Result<dap::DapMessage, std::io::Error> {
-    let mut msg: String = String::new();
     stream.set_read_timeout(Some(std::time::Duration::new(10, 0)))?;
     let header: i64 = read_header(stream)?;
-    // stream.read_to_string(&mut msg)?;
+    let mut buf = vec![0u8; header as usize];
+    stream.read_exact(&mut buf)?;
+    
+    let msg: String = String::from_utf8(buf).unwrap();
     Ok(dap::DapMessage {
         header: header,
         content: msg,
