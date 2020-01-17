@@ -53,8 +53,10 @@ fn load_script(filename: &str) -> Result<Script, std::io::Error> {
 }
 
 fn main() -> std::io::Result<()> {
-    let listener = TcpListener::bind("127.0.0.1:3333")?;
     let script = load_script("default.dap")?;
+
+    // It's possible that we will initialize connection here.
+    let listener = TcpListener::bind("127.0.0.1:3333")?;
     for stream in listener.incoming() {
         let mut io = stream?;
         io.set_read_timeout(Some(std::time::Duration::new(10, 0)))?;
