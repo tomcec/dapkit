@@ -3,6 +3,10 @@ use json::object;
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
 
+struct Script {
+
+}
+
 fn read_header(stream: &mut TcpStream) -> Result<i64, std::io::Error> {
     let mut done = false;
     let mut header_bytes: Vec<u8> = Vec::new();
@@ -34,11 +38,23 @@ fn read_request(stream: &mut TcpStream) -> Result<dap::DapMessage, std::io::Erro
     })
 }
 
+fn load_script(filename: &str) -> Result<Script, std::io::Error> {
+    println!("Loading {}", filename);
+    return Ok(Script {});
+}
+
 fn main() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:3333")?;
+    let script = load_script("default.dap")?;
     for stream in listener.incoming() {
         let mut io = stream?;
         io.set_read_timeout(Some(std::time::Duration::new(10, 0)))?;
+
+        // 1. if script says send something - do it now.
+        // 2. Wait for message
+        // 3. Match message to expected in script
+        // 3.1 If no response found - stop
+        // 4. goto 1
 
         let msg: dap::DapMessage = read_request(&mut io)?;
         io.write_all(
