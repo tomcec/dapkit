@@ -1,5 +1,5 @@
 mod dap;
-use json::{array, object};
+use json::object;
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
 
@@ -23,7 +23,6 @@ fn read_header(stream: &mut TcpStream) -> Result<i64, std::io::Error> {
 }
 
 fn read_request(stream: &mut TcpStream) -> Result<dap::DapMessage, std::io::Error> {
-    stream.set_read_timeout(Some(std::time::Duration::new(10, 0)))?;
     let header: i64 = read_header(stream)?;
     let mut buf = vec![0u8; header as usize];
     stream.read_exact(&mut buf)?;
@@ -36,22 +35,11 @@ fn read_request(stream: &mut TcpStream) -> Result<dap::DapMessage, std::io::Erro
 }
 
 fn main() -> std::io::Result<()> {
-    let json = object! {
-    "code" => 200,
-    "success" => true,
-    "payload" => object!{
-        "features" => array![
-            "awesome",
-            "easyAPI",
-            "lowLearningCurve"
-            ]
-        }
-    };
-
     let listener = TcpListener::bind("127.0.0.1:3333")?;
-    let json_str = json::stringify(json);
     for stream in listener.incoming() {
         let mut io = stream?;
+        io.set_read_timeout(Some(std::time::Duration::new(10, 0)))?;
+
         let msg: dap::DapMessage = read_request(&mut io)?;
         io.write_all(
             json::stringify(object! {
@@ -59,7 +47,7 @@ fn main() -> std::io::Result<()> {
                 "content" => msg.content
             })
             .as_bytes(),
-        );
+        )?;
     }
     Ok(())
 }
