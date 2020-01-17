@@ -3,8 +3,15 @@ use json::object;
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
 
-struct Script {
+// Do we emulate IDE or Adapter or Script can be used for any side?
+enum Roles {
+    IDE,
+    Adapter,
+    Unified,
+}
 
+struct Script {
+    role: Roles,
 }
 
 fn read_header(stream: &mut TcpStream) -> Result<i64, std::io::Error> {
@@ -40,7 +47,9 @@ fn read_request(stream: &mut TcpStream) -> Result<dap::DapMessage, std::io::Erro
 
 fn load_script(filename: &str) -> Result<Script, std::io::Error> {
     println!("Loading {}", filename);
-    return Ok(Script {});
+    return Ok(Script {
+        role: Roles::Adapter,
+    });
 }
 
 fn main() -> std::io::Result<()> {
