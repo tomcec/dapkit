@@ -3,15 +3,21 @@ use json::object;
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
 
-// Do we emulate IDE or Adapter or Script can be used for any side?
-enum Roles {
-    IDE,
-    Adapter,
-    Unified,
+#[derive(Debug)]
+enum Peers {
+    ide,
+    da,
 }
 
-struct Script {
-    role: Roles,
+#[derive(Debug)]
+struct ScriptInteraction {
+    source: Peers,
+    content: String,
+}
+
+#[derive(Debug)]
+struct DAPScript {
+    interactions: Vec<ScriptInteraction>,
 }
 
 fn read_header(stream: &mut TcpStream) -> Result<i64, std::io::Error> {
@@ -30,14 +36,16 @@ fn read_header(stream: &mut TcpStream) -> Result<i64, std::io::Error> {
         let num = content_len["Content-Length:".len()..].trim();
         return Ok(num.parse::<i64>().unwrap());
     }
-    Err(std::io::Error::new(std::io::ErrorKind::Other, "Wrong header"))
+    Err(std::io::Error::new(
+        std::io::ErrorKind::Other,
+        "Wrong header",
+    ))
 }
 
 fn read_request(stream: &mut TcpStream) -> Result<dap::DapMessage, std::io::Error> {
     let header: i64 = read_header(stream)?;
     let mut buf = vec![0u8; header as usize];
     stream.read_exact(&mut buf)?;
-    
     let msg: String = String::from_utf8(buf).unwrap();
     Ok(dap::DapMessage {
         header: header,
@@ -45,15 +53,17 @@ fn read_request(stream: &mut TcpStream) -> Result<dap::DapMessage, std::io::Erro
     })
 }
 
-fn load_script(filename: &str) -> Result<Script, std::io::Error> {
-    println!("Loading {}", filename);
-    return Ok(Script {
-        role: Roles::Adapter,
+fn load_script(filename: &str) -> Result<DAPScript, std::io::Error> {
+    let content = std::fs::read_to_string(filename)?;
+    println!("Content of {}\n{}", filename, content);
+    return Ok(DAPScript {
+        interactions: vec![],
     });
 }
 
 fn main() -> std::io::Result<()> {
-    let script = load_script("default.dap")?;
+    let script = load_script("session_01.dap")?;
+    println!("Script: {:?}", script);
 
     // It's possible that we will initialize connection here.
     let listener = TcpListener::bind("127.0.0.1:3333")?;
@@ -77,4 +87,12 @@ fn main() -> std::io::Result<()> {
         )?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn it_works() {
+        assert_eq!(1 + 1, 2);
+    }
 }
