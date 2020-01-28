@@ -55,9 +55,23 @@ fn read_request(stream: &mut TcpStream) -> Result<dap::DapMessage, std::io::Erro
 
 fn load_script(filename: &str) -> Result<DAPScript, std::io::Error> {
     let content = std::fs::read_to_string(filename)?;
-    println!("Content of {}\n{}", filename, content);
+    let data = json::parse(&content).unwrap();
+    println!("Interaction in {}\n{}", filename, data["interaction"]);
+    let mut interaction: Vec<ScriptInteraction> = Vec::new();
+    for act in data["interaction"].members() {
+        let source: Peers = match act["source"].as_str() {
+            Some("ide") => Peers::ide,
+            Some("da") => Peers::da,
+            _ => panic!("source missing")
+        };
+
+        interaction.push(ScriptInteraction {
+            source: source,
+            content: act["content"].dump()
+        });
+    }
     return Ok(DAPScript {
-        interactions: vec![],
+        interactions: interaction,
     });
 }
 
