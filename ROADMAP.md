@@ -1,2 +1,5 @@
-[] Proxy
-[] Replay
+TODO:
+
+* VSCode extension
+* Proxy
+* Replay
