@@ -5,8 +5,8 @@ use std::net::{TcpListener, TcpStream};
 
 #[derive(Debug)]
 enum Peers {
-    ide,
-    da,
+    Ide,
+    Da,
 }
 
 #[derive(Debug)]
@@ -42,7 +42,7 @@ fn read_header(stream: &mut TcpStream) -> Result<i64, std::io::Error> {
     ))
 }
 
-fn read_request(stream: &mut TcpStream) -> Result<dap::DapMessage, std::io::Error> {
+fn read_message(stream: &mut TcpStream) -> Result<dap::DapMessage, std::io::Error> {
     let header: i64 = read_header(stream)?;
     let mut buf = vec![0u8; header as usize];
     stream.read_exact(&mut buf)?;
@@ -60,8 +60,8 @@ fn load_script(filename: &str) -> Result<DAPScript, std::io::Error> {
     let mut interaction: Vec<ScriptInteraction> = Vec::new();
     for act in data["interaction"].members() {
         let source: Peers = match act["source"].as_str() {
-            Some("ide") => Peers::ide,
-            Some("da") => Peers::da,
+            Some("ide") => Peers::Ide,
+            Some("da") => Peers::Da,
             _ => panic!("source missing")
         };
 
@@ -91,7 +91,7 @@ fn main() -> std::io::Result<()> {
         // 3.1 If no response found - stop
         // 4. goto 1
 
-        let msg: dap::DapMessage = read_request(&mut io)?;
+        let msg: dap::DapMessage = read_message(&mut io)?;
         io.write_all(
             json::stringify(object! {
                 "header" => msg.header,
