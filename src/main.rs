@@ -1,24 +1,9 @@
 mod dap;
+mod script;
 use json::object;
 use std::io::prelude::*;
 use std::net::{TcpListener, TcpStream};
-
-#[derive(Debug)]
-enum Peers {
-    Ide,
-    Da,
-}
-
-#[derive(Debug)]
-struct ScriptInteraction {
-    source: Peers,
-    content: String,
-}
-
-#[derive(Debug)]
-struct DAPScript {
-    interactions: Vec<ScriptInteraction>,
-}
+use script::*;
 
 fn read_header(stream: &mut TcpStream) -> Result<i64, std::io::Error> {
     let mut done = false;
@@ -53,27 +38,6 @@ fn read_message(stream: &mut TcpStream) -> Result<dap::DapMessage, std::io::Erro
     })
 }
 
-fn load_script(filename: &str) -> Result<DAPScript, std::io::Error> {
-    let content = std::fs::read_to_string(filename)?;
-    let data = json::parse(&content).unwrap();
-    println!("Interaction in {}\n{}", filename, data["interaction"]);
-    let mut interaction: Vec<ScriptInteraction> = Vec::new();
-    for act in data["interaction"].members() {
-        let source: Peers = match act["source"].as_str() {
-            Some("ide") => Peers::Ide,
-            Some("da") => Peers::Da,
-            _ => panic!("source missing")
-        };
-
-        interaction.push(ScriptInteraction {
-            source: source,
-            content: act["content"].dump()
-        });
-    }
-    return Ok(DAPScript {
-        interactions: interaction,
-    });
-}
 
 fn main() -> std::io::Result<()> {
     let script = load_script("session_01.dap")?;
