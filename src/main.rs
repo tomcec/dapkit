@@ -1,12 +1,22 @@
 mod dap;
 mod script;
+use clap::Clap;
 use json::object;
+use script::*;
 use std::io::prelude::*;
 use std::net::TcpListener;
-use script::*;
+
+#[derive(Clap)]
+#[clap(version = "1.0")]
+struct Opts {
+    /// Sets a custom script file.
+    #[clap(short = "s", long = "script", default_value = "default.dap")]
+    script: String,
+}
 
 fn main() -> std::io::Result<()> {
-    let script = load_script("session_01.dap")?;
+    let opts: Opts = Opts::parse();
+    let script = load_script(&opts.script)?;
     println!("Script: {:?}", script);
 
     // It's possible that we will initialize connection here.
