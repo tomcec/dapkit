@@ -23,7 +23,6 @@ pub struct DAPScript {
 pub fn load_script(filename: &str) -> Result<DAPScript, std::io::Error> {
     let content = std::fs::read_to_string(filename)?;
     let data = json::parse(&content).unwrap();
-    println!("Interaction in {}\n{}", filename, data["interaction"]);
     let mut interaction: Vec<ScriptInteraction> = Vec::new();
     for act in data["interaction"].members() {
         let source: Peers = match act["source"].as_str() {
@@ -43,7 +42,7 @@ pub fn load_script(filename: &str) -> Result<DAPScript, std::io::Error> {
 }
 
 impl DAPScript {
-    pub fn run_script<T: Read + Write>(&self, stream: &mut T, role: Peers) {
+    pub fn run_script(&self, input: &mut dyn Read, output: &mut dyn Write, role: Peers) {
         for step in self.interactions.iter() {
             if step.source == role {
                 // Send stuff!
@@ -53,8 +52,8 @@ impl DAPScript {
         // 2. Wait for message
         // 3. Match message to expected in script
         // 3.1 If no response found - stop
-        let msg: dap::DapMessage = dap::read_message(stream).unwrap();
-        stream
+        let msg: dap::DapMessage = dap::read_message(input).unwrap();
+        output
             .write_all(
                 json::stringify(object! {
                     "header" => msg.header,

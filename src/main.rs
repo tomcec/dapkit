@@ -1,9 +1,9 @@
-mod script;
 mod dap;
+mod script;
 use clap::Clap;
 use script::*;
 
-use std::net::TcpListener;
+use std::net::{SocketAddr, TcpListener};
 
 #[derive(Clap)]
 #[clap(version = "1.0")]
@@ -11,6 +11,12 @@ struct Opts {
     /// Sets a custom script file.
     #[clap(short = "s", long = "script", default_value = "default.dap")]
     script: String,
+    /// TSP server mode
+    #[clap(short = "l")]
+    server: bool,
+    /// Port to listen.
+    #[clap(short = "p", long = "port", default_value = "3333")]
+    port: u16,
 }
 
 fn main() -> std::io::Result<()> {
@@ -18,12 +24,17 @@ fn main() -> std::io::Result<()> {
     let script = load_script(&opts.script)?;
     println!("Script: {:?}", script);
 
-    // It's possible that we will initialize connection here.
-    let listener = TcpListener::bind("127.0.0.1:3333")?;
-    for stream in listener.incoming() {
-        let mut io = stream?;
-        io.set_read_timeout(Some(std::time::Duration::new(10, 0)))?;
-        script.run_script(&mut io, script::Peers::Da);
+    if opts.server {
+        let addr = SocketAddr::from(([127, 0, 0, 1], opts.port));
+        let listener = TcpListener::bind(addr)?;
+        for stream in listener.incoming() {
+            let mut io = stream?;
+            let mut input = io.try_clone()?;
+            io.set_read_timeout(Some(std::time::Duration::new(10, 0)))?;
+            script.run_script(&mut input, &mut io, script::Peers::Da);
+        }
+    } else {
+        script.run_script(&mut std::io::stdin(), &mut std::io::stdout(), script::Peers::Da);
     }
     Ok(())
 }
