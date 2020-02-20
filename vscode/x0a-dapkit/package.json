@@ -11,7 +11,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.helloWorld"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
@@ -19,6 +19,34 @@
 			{
 				"command": "extension.helloWorld",
 				"title": "Hello World"
+			}
+		],
+		"debuggers": [
+			{
+				"type": "dapkit",
+				"label": "dapkit session",
+				"configurationAttributes": {
+					"launch": {
+						"properties": {
+							"script": {
+								"type": "string",
+								"description": "file to use as script for debug adapter",
+								"default": "${file}"
+							}
+						}
+					}
+				},
+				"configurationSnippets": [
+					{
+						"label": "dapkit: run by script",
+						"body": {
+							"type": "dapkit",
+							"request": "launch",
+							"name": "dapkit script runner",
+							"script": "^\"\\${file}\""
+						}
+					}
+				]
 			}
 		]
 	},
