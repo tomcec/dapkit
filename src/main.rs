@@ -23,7 +23,7 @@ fn main() -> std::io::Result<()> {
     for stream in listener.incoming() {
         let mut io = stream?;
         io.set_read_timeout(Some(std::time::Duration::new(10, 0)))?;
-        script.run_script(&mut io);
+        script.run_script(&mut io, script::Peers::Da);
     }
     Ok(())
 }
