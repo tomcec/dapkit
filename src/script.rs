@@ -1,5 +1,4 @@
 use crate::dap;
-use json::object;
 use std::io::prelude::*;
 
 #[derive(Debug)]
@@ -45,22 +44,14 @@ impl DAPScript {
     pub fn run_script(&self, input: &mut dyn Read, output: &mut dyn Write, role: Peers) {
         for step in self.interactions.iter() {
             if step.source == role {
-                // Send stuff!
+                output.write_all(step.content.as_bytes()).unwrap();
             }
-            println!("Step: {:?}", step);
+            // println!("Step: {:?}", step);
         }
         // 2. Wait for message
         // 3. Match message to expected in script
         // 3.1 If no response found - stop
         let msg: dap::DapMessage = dap::read_message(input).unwrap();
-        output
-            .write_all(
-                json::stringify(object! {
-                    "header" => msg.header,
-                    "content" => msg.content
-                })
-                .as_bytes(),
-            )
-            .unwrap();
+        println!("\nFrom IDE: {:?}", msg);
     }
 }

@@ -1,5 +1,6 @@
 use std::io::prelude::*;
 
+#[derive(Debug)]
 pub struct DapMessage {
     pub header: i64,
     pub content: String,

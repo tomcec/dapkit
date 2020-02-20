@@ -22,7 +22,6 @@ struct Opts {
 fn main() -> std::io::Result<()> {
     let opts: Opts = Opts::parse();
     let script = load_script(&opts.script)?;
-    println!("Script: {:?}", script);
 
     if opts.server {
         let addr = SocketAddr::from(([127, 0, 0, 1], opts.port));
