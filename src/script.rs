@@ -1,8 +1,7 @@
 use crate::dap;
 use std::io::prelude::*;
 
-#[derive(Debug)]
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum Peers {
     Ide,
     Da,
@@ -45,13 +44,17 @@ impl DAPScript {
         for step in self.interactions.iter() {
             if step.source == role {
                 output.write_all(step.content.as_bytes()).unwrap();
+            } else {
+                let msg: dap::DapMessage = dap::read_message(input).unwrap();
+                DAPScript::match_message(&msg.content, &step.content);
+                // Some magic base on match result
             }
-            // println!("Step: {:?}", step);
         }
-        // 2. Wait for message
-        // 3. Match message to expected in script
-        // 3.1 If no response found - stop
-        let msg: dap::DapMessage = dap::read_message(input).unwrap();
-        println!("\nFrom IDE: {:?}", msg);
+    }
+
+    fn match_message(expected: &String, actual: &String) {
+        let expected = json::parse(&expected).unwrap();
+        let actual = json::parse(&actual).unwrap();
+        // TODO compare logic here
     }
 }
