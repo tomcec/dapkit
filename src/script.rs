@@ -52,9 +52,20 @@ impl DAPScript {
         }
     }
 
-    fn match_message(expected: &String, actual: &String) {
+    fn match_message(expected: &String, actual: &String) -> bool {
         let expected = json::parse(&expected).unwrap();
         let actual = json::parse(&actual).unwrap();
         // TODO compare logic here
+        expected.eq(&actual)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn match_message_test() {
+        let result = DAPScript::match_message(&String::from("{}"), &String::from("{}"));
+        assert_eq!(result, true);
     }
 }
