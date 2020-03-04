@@ -38,3 +38,8 @@ pub fn read_message(stream: &mut dyn Read) -> Result<DapMessage, std::io::Error>
         content: msg,
     })
 }
+
+pub fn send_message(stream: &mut dyn Write, content: &String) {
+    stream.write_all(format!("Content-Length:{}\n\r", content.len()).as_bytes()).unwrap();
+    stream.write_all(content.as_bytes()).unwrap();
+}
