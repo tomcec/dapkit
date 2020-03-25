@@ -6,12 +6,11 @@ use script::*;
 use std::net::{SocketAddr, TcpListener};
 
 #[derive(Clap)]
-#[clap(version = "1.0")]
-struct Opts {
+struct MockModeParams {
     /// Sets a custom script file.
     #[clap(short = "s", long = "script", default_value = "default.dap")]
     script: String,
-    /// TSP server mode
+    /// TCP server mode
     #[clap(short = "l")]
     server: bool,
     /// Port to listen.
@@ -19,12 +18,48 @@ struct Opts {
     port: u16,
 }
 
-fn main() -> std::io::Result<()> {
-    let opts: Opts = Opts::parse();
-    let script = load_script(&opts.script)?;
+#[derive(Clap, Debug)]
+struct VSCodeModeParams {
+    /// Part of launch.json to start
+    #[clap(short="j", long="json")]
+    json: String,
+}
 
-    if opts.server {
-        let addr = SocketAddr::from(([127, 0, 0, 1], opts.port));
+#[derive(Clap, Debug)]
+struct TcpProxyModeParams {
+    /// IP address and Port to listem (ex: 0.0.0.0:4712, 127.0.0.1:9999)
+    #[clap(short = "l", long = "listen", default_value = "0.0.0.0:4712")]
+    listen: String,
+    /// IP address and Port to listem (ex: 0.0.0.0:4712, 127.0.0.1:9999)
+    #[clap(short = "c", long = "connect")]
+    connect: String,
+}
+
+#[derive(Clap)]
+enum RunMode {
+    /// Run dapkit from VSCode extension
+    #[clap(name = "vscode")]
+    VSCode(VSCodeModeParams),
+    /// Run dapkit in proxy mode
+    #[clap(name = "tcp-proxy")]
+    TcpProxy(TcpProxyModeParams),
+    /// Run dapkit in mock mode
+    #[clap(name = "mock")]
+    MockMode(MockModeParams),
+}
+
+#[derive(Clap)]
+#[clap(version = "1.0")]
+struct Opts {
+    // Mode to run
+    #[clap(subcommand)]
+    mode: RunMode,
+}
+
+fn mock_main(params: &MockModeParams) -> std::io::Result<()> {
+    let script = load_script(&params.script)?;
+    if params.server {
+        let addr = SocketAddr::from(([127, 0, 0, 1], params.port));
         let listener = TcpListener::bind(addr)?;
         for stream in listener.incoming() {
             let mut io = stream?;
@@ -33,9 +68,30 @@ fn main() -> std::io::Result<()> {
             script.run_script(&mut input, &mut io, script::Peers::Da);
         }
     } else {
-        script.run_script(&mut std::io::stdin(), &mut std::io::stdout(), script::Peers::Da);
+        script.run_script(
+            &mut std::io::stdin(),
+            &mut std::io::stdout(),
+            script::Peers::Da,
+        );
     }
     Ok(())
+}
+fn vscode_main(params: &VSCodeModeParams) -> std::io::Result<()> {
+    println!("vscode {:?}", params);
+    Ok(())
+}
+fn proxy_main(params: &TcpProxyModeParams) -> std::io::Result<()> {
+    println!("vscode {:?}", params);
+    Ok(())
+}
+
+fn main() -> std::io::Result<()> {
+    let opts: Opts = Opts::parse();
+    match opts.mode {
+        RunMode::MockMode(params) => mock_main(&params),
+        RunMode::TcpProxy(params) => proxy_main(&params),
+        RunMode::VSCode(params) => vscode_main(&params),
+    }
 }
 
 #[cfg(test)]
