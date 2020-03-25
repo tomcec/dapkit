@@ -8,23 +8,33 @@
 		"vscode": "^1.42.1"
 	},
 	"categories": [
-		"Other"
+		"Debuggers"
 	],
 	"activationEvents": [
-		"*"
+		"onDebug"
 	],
+	"repository": {
+        "type": "git",
+        "url": "https://github.com/ishche/dapkit.git"
+    },
+    "bugs": {
+        "url": "https://github.com/ishche/dapkit/issues"
+    },
 	"main": "./out/extension.js",
 	"contributes": {
-		"commands": [
-			{
-				"command": "extension.helloWorld",
-				"title": "Hello World"
-			}
-		],
 		"debuggers": [
 			{
 				"type": "dapkit",
 				"label": "dapkit session",
+				"osx": {
+                    "program": "./bin/macos.sh"
+                },
+                "windows": {
+                    "program": "not ready ./bin/windows.bat"
+                },
+                "linux": {
+                    "program": "not ready ./bin/linux.sh"
+                },
 				"configurationAttributes": {
 					"launch": {
 						"properties": {
@@ -36,6 +46,7 @@
 						}
 					}
 				},
+				"initialConfigurations": [],
 				"configurationSnippets": [
 					{
 						"label": "dapkit: run by script",
