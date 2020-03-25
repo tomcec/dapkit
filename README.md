@@ -2,17 +2,18 @@
 
 # DAPKit
 
-DAPKit (Debug Adapter Protocol toolKit) is a tool to proxy or mock 
+DAPKit (Debug Adapter Protocol toolKit) is a tool to proxy or replicate 
 [DAP](https://microsoft.github.io/debug-adapter-protocol/specification) communication between 
 an IDE and a debug adapter.
 
 ![DAPKit place diagram](https://raw.githubusercontent.com/ishche/dapkit/master/dia-place.png)
 
-DAPKit is useful for IDE and debug adapter developers if they work with debag adapter protocol.
+DAPKit is useful for IDE and debug adapter developers working with debug adapter protocol.
 
-The application can be useful for test automation as IDE or debag adapter mock. At the same time, 
-DAPKit can be a quick way to create a mock of debug adapter to share with third parties.  It can 
-be useful for bug reproducing without sharing the actual debug adapter and target system.
+The application can be used to:
+- Test automation as IDE or debag adapter mock
+- Create a mock of debug adapter to share with third parties
+- Bug reproducing without sharing the actual debug adapter and target system.
 
 ![IDE mock](https://raw.githubusercontent.com/ishche/dapkit/master/dia-mock-ide.png)
 
