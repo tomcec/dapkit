@@ -1,8 +1,9 @@
 mod dap;
+mod proxy;
 mod script;
+
 use clap::Clap;
 use script::*;
-
 use std::net::{SocketAddr, TcpListener};
 
 #[derive(Clap)]
@@ -21,7 +22,7 @@ struct MockModeParams {
 #[derive(Clap, Debug)]
 struct VSCodeModeParams {
     /// Part of launch.json to start
-    #[clap(short="j", long="json")]
+    #[clap(short = "j", long = "json")]
     json: String,
 }
 
@@ -30,8 +31,8 @@ struct TcpProxyModeParams {
     /// IP address and Port to listem (ex: 0.0.0.0:4712, 127.0.0.1:9999)
     #[clap(short = "l", long = "listen", default_value = "0.0.0.0:4712")]
     listen: String,
-    /// IP address and Port to listem (ex: 0.0.0.0:4712, 127.0.0.1:9999)
-    #[clap(short = "c", long = "connect")]
+    /// IP address and Port to connect (127.0.0.1:4712)
+    #[clap(short = "c", long = "connect", required = true)]
     connect: String,
 }
 
@@ -80,16 +81,12 @@ fn vscode_main(params: &VSCodeModeParams) -> std::io::Result<()> {
     println!("vscode {:?}", params);
     Ok(())
 }
-fn proxy_main(params: &TcpProxyModeParams) -> std::io::Result<()> {
-    println!("vscode {:?}", params);
-    Ok(())
-}
 
 fn main() -> std::io::Result<()> {
     let opts: Opts = Opts::parse();
     match opts.mode {
         RunMode::MockMode(params) => mock_main(&params),
-        RunMode::TcpProxy(params) => proxy_main(&params),
+        RunMode::TcpProxy(params) => proxy::proxy_main(&params.listen, &params.connect),
         RunMode::VSCode(params) => vscode_main(&params),
     }
 }

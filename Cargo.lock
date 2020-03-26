@@ -58,7 +58,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "dap"
+name = "dapkit"
 version = "0.1.0"
 dependencies = [
  "clap 3.0.0-beta.1 (git+https://github.com/clap-rs/clap/)",
