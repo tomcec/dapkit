@@ -43,7 +43,7 @@ impl DAPScript {
     pub fn run_script(&self, input: &mut dyn Read, output: &mut dyn Write, role: Peers) {
         for step in self.interactions.iter() {
             if step.source == role {
-                dap::send_message(output, &step.content);
+                dap::send_message(output, &step.content).unwrap();
             } else {
                 let msg: dap::DapMessage = dap::read_message(input).unwrap();
                 DAPScript::match_message(&msg.content, &step.content);

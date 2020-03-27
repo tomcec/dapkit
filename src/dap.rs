@@ -1,9 +1,16 @@
 use std::io::prelude::*;
+use std::fmt;
 
 #[derive(Debug)]
 pub struct DapMessage {
     pub header: i64,
     pub content: String,
+}
+
+impl fmt::Display for DapMessage {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.content)
+    }
 }
 
 fn read_header(stream: &mut dyn Read) -> Result<i64, std::io::Error> {
@@ -17,6 +24,9 @@ fn read_header(stream: &mut dyn Read) -> Result<i64, std::io::Error> {
         }
         header_bytes.push(ch[0]);
     }
+    // FIXME: implement header reading right
+    // https://microsoft.github.io/debug-adapter-protocol/overview
+    stream.read(&mut vec![0u8;2])?;
     let content_len = String::from_utf8(header_bytes).unwrap();
     if content_len.starts_with("Content-Length:") {
         let num = content_len["Content-Length:".len()..].trim();
@@ -39,7 +49,8 @@ pub fn read_message(stream: &mut dyn Read) -> Result<DapMessage, std::io::Error>
     })
 }
 
-pub fn send_message(stream: &mut dyn Write, content: &String) {
-    stream.write_all(format!("Content-Length:{}\n\r", content.len()).as_bytes()).unwrap();
-    stream.write_all(content.as_bytes()).unwrap();
+pub fn send_message(stream: &mut dyn Write, content: &String) -> std::io::Result<()>   {
+    stream.write_all(format!("Content-Length: {}\r\n\r\n", content.len()).as_bytes())?;
+    stream.write_all(content.as_bytes())?;
+    Ok(())
 }

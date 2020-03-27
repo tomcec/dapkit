@@ -1,5 +1,6 @@
 use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener, TcpStream};
+use std::sync::mpsc;
 use std::sync::Arc;
 use std::thread;
 
@@ -30,6 +31,8 @@ pub fn proxy_main(listen: &String, connect: &String) -> std::io::Result<()> {
 }
 
 fn run_proxy(ide: TcpStream, da: TcpStream) -> std::io::Result<()> {
+    let (log_da, log_rx) = mpsc::channel::<String>();
+    let log_ide = mpsc::Sender::clone(&log_da);
     let ide = Arc::new(ide);
     let da = Arc::new(da);
     {
@@ -40,22 +43,33 @@ fn run_proxy(ide: TcpStream, da: TcpStream) -> std::io::Result<()> {
             let mut ide = ide.try_clone().unwrap();
             loop {
                 // ida -> ide
-                pipe_char(&mut da, &mut ide).expect("Error");
+                match pipe_dap(&mut da, &mut ide, &log_da, "ide <- ") {
+                    Err(_) => break,
+                    _ => (),
+                }
             }
         });
     }
     let mut ide = ide.try_clone().unwrap();
     let mut da = da.try_clone().unwrap();
-    loop {
-        // ide -> da
-        pipe_char(&mut ide, &mut da)?;
+    thread::spawn(move || {
+        loop {
+            // ide -> da
+            match pipe_dap(&mut ide, &mut da, &log_ide, "ide -> ") {
+                Err(_) => break,
+                _ => (),
+            }
+        }
+    });
+    for received in log_rx {
+        println!("{}", received);
     }
+    Ok(())
 }
 
-fn pipe_char(from: &mut dyn Read, to: &mut dyn Write) -> std::io::Result<()> {
-    let mut ch: [u8; 1] = [0];
-    from.read_exact(&mut ch[..])?;
-    print!("{}", ch[0] as char);
-    to.write(&ch)?;
+fn pipe_dap(from: &mut dyn Read, to: &mut dyn Write, log_tx: &mpsc::Sender<String>, prefix: &str) -> std::io::Result<()> {
+    let message = crate::dap::read_message(from)?;
+    log_tx.send(format!("{}{}", prefix, message)).unwrap();
+    crate::dap::send_message(to, &message.content)?;
     Ok(())
 }
