@@ -13,9 +13,12 @@ struct MockModeParams {
     /// TCP server mode
     #[clap(long = "pipes")]
     pipes: bool,
-    /// Port to listen.
-    #[clap(long = "port", default_value = "4712")]
-    port: u16,
+    /// IP address and Port to use
+    #[clap(short = "a", long = "address", default_value = "127.0.0.1:4712")]
+    address: String,
+    /// Emulating site - "ide" or "da"
+    #[clap(short="r", long = "role", default_value = "ide")]
+    role: script::Peers,
 }
 
 #[derive(Clap, Debug)]
@@ -67,7 +70,7 @@ fn vscode_main(params: &VSCodeModeParams) -> std::io::Result<()> {
 fn main() -> std::io::Result<()> {
     let opts: Opts = Opts::parse();
     match opts.mode {
-        RunMode::MockMode(params) => mock::mock_main(&params.script, params.pipes, params.port),
+        RunMode::MockMode(params) => mock::mock_main(&params.script, params.pipes, &params.address, params.role),
         RunMode::TcpProxy(params) => {
             proxy::proxy_main(&params.listen, &params.connect, params.log_script)
         }

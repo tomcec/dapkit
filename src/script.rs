@@ -18,6 +18,17 @@ pub struct DAPScript {
     pub interactions: Vec<ScriptInteraction>,
 }
 
+impl std::str::FromStr for Peers {
+    type Err = String;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "ide" => Ok(Peers::Ide),
+            "da" => Ok(Peers::Da),
+            error => Err(format!("Can't parse {}", error)),
+        }
+    }
+}
+
 impl std::convert::From<&DAPScript> for json::JsonValue {
     fn from(script: &DAPScript) -> json::JsonValue {
         json::object!(
