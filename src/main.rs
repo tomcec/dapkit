@@ -34,6 +34,9 @@ struct TcpProxyModeParams {
     /// IP address and Port to connect (127.0.0.1:4712)
     #[clap(short = "c", long = "connect", required = true)]
     connect: String,
+    /// Log commulication to script
+    #[clap(short = "s", long = "log-script")]
+    log_script: bool,
 }
 
 #[derive(Clap)]
@@ -86,7 +89,7 @@ fn main() -> std::io::Result<()> {
     let opts: Opts = Opts::parse();
     match opts.mode {
         RunMode::MockMode(params) => mock_main(&params),
-        RunMode::TcpProxy(params) => proxy::proxy_main(&params.listen, &params.connect),
+        RunMode::TcpProxy(params) => proxy::proxy_main(&params.listen, &params.connect, params.log_script),
         RunMode::VSCode(params) => vscode_main(&params),
     }
 }

@@ -1,13 +1,13 @@
 use crate::dap;
 use std::io::prelude::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Copy, Clone)]
 pub enum Peers {
     Ide,
     Da,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ScriptInteraction {
     pub source: Peers,
     pub content: String,
@@ -16,6 +16,32 @@ pub struct ScriptInteraction {
 #[derive(Debug)]
 pub struct DAPScript {
     pub interactions: Vec<ScriptInteraction>,
+}
+
+impl std::convert::From<&DAPScript> for json::JsonValue {
+    fn from(script: &DAPScript) -> json::JsonValue {
+        json::object!(
+            interactions: script.interactions.clone(),
+        )
+    }
+}
+
+impl std::convert::From<ScriptInteraction> for json::JsonValue {
+    fn from(si: ScriptInteraction) -> json::JsonValue {
+        json::object!(
+            source: si.source,
+            content: si.content.clone(),
+        )
+    }
+}
+
+impl std::convert::From<Peers> for json::JsonValue {
+    fn from(pear: Peers) -> json::JsonValue {
+        match pear {
+            Peers::Ide => json::JsonValue::String(String::from("ide")),
+            Peers::Da => json::JsonValue::String(String::from("da")),
+        }
+    }
 }
 
 pub fn load_script(filename: &str) -> Result<DAPScript, std::io::Error> {
