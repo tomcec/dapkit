@@ -1,21 +1,20 @@
 mod dap;
+mod mock;
 mod proxy;
 mod script;
 
 use clap::Clap;
-use script::*;
-use std::net::{SocketAddr, TcpListener};
 
 #[derive(Clap)]
 struct MockModeParams {
     /// Sets a custom script file.
-    #[clap(short = "s", long = "script", default_value = "default.dap")]
+    #[clap(short = "s", long = "script", default_value = "script.dap")]
     script: String,
     /// TCP server mode
-    #[clap(short = "l")]
-    server: bool,
+    #[clap(long = "pipes")]
+    pipes: bool,
     /// Port to listen.
-    #[clap(short = "p", long = "port", default_value = "3333")]
+    #[clap(long = "port", default_value = "4712")]
     port: u16,
 }
 
@@ -60,26 +59,6 @@ struct Opts {
     mode: RunMode,
 }
 
-fn mock_main(params: &MockModeParams) -> std::io::Result<()> {
-    let script = load_script(&params.script)?;
-    if params.server {
-        let addr = SocketAddr::from(([127, 0, 0, 1], params.port));
-        let listener = TcpListener::bind(addr)?;
-        for stream in listener.incoming() {
-            let mut io = stream?;
-            let mut input = io.try_clone()?;
-            io.set_read_timeout(Some(std::time::Duration::new(10, 0)))?;
-            script.run_script(&mut input, &mut io, script::Peers::Da);
-        }
-    } else {
-        script.run_script(
-            &mut std::io::stdin(),
-            &mut std::io::stdout(),
-            script::Peers::Da,
-        );
-    }
-    Ok(())
-}
 fn vscode_main(params: &VSCodeModeParams) -> std::io::Result<()> {
     println!("vscode {:?}", params);
     Ok(())
@@ -88,8 +67,10 @@ fn vscode_main(params: &VSCodeModeParams) -> std::io::Result<()> {
 fn main() -> std::io::Result<()> {
     let opts: Opts = Opts::parse();
     match opts.mode {
-        RunMode::MockMode(params) => mock_main(&params),
-        RunMode::TcpProxy(params) => proxy::proxy_main(&params.listen, &params.connect, params.log_script),
+        RunMode::MockMode(params) => mock::mock_main(&params.script, params.pipes, params.port),
+        RunMode::TcpProxy(params) => {
+            proxy::proxy_main(&params.listen, &params.connect, params.log_script)
+        }
         RunMode::VSCode(params) => vscode_main(&params),
     }
 }

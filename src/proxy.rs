@@ -84,7 +84,7 @@ fn run_proxy(ide: TcpStream, da: TcpStream, log_script: bool) -> io::Result<()> 
             .write(true)
             .create(true)
             .append(true)
-            .open("dap.log")?;
+            .open("script.dap")?; // TODO move to constants and to CLI options
         file.write_all(json::stringify_pretty(&script, 4).as_bytes())?;
     }
     Ok(())

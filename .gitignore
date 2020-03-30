@@ -2,3 +2,5 @@
 node_modules
 out
 **/*.rs.bk
+# ignore scripts
+*.dap

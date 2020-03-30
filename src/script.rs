@@ -48,16 +48,20 @@ pub fn load_script(filename: &str) -> Result<DAPScript, std::io::Error> {
     let content = std::fs::read_to_string(filename)?;
     let data = json::parse(&content).unwrap();
     let mut interaction: Vec<ScriptInteraction> = Vec::new();
-    for act in data["interaction"].members() {
+    for act in data["interactions"].members() {
         let source: Peers = match act["source"].as_str() {
             Some("ide") => Peers::Ide,
             Some("da") => Peers::Da,
             _ => panic!("source missing"),
         };
 
+        
         interaction.push(ScriptInteraction {
             source: source,
-            content: act["content"].dump(),
+            content: match &act["content"] {
+                json::JsonValue::String(text) => String::from(text),
+                other => other.dump(),
+            },
         });
     }
     return Ok(DAPScript {
@@ -70,19 +74,23 @@ impl DAPScript {
         for step in self.interactions.iter() {
             if step.source == role {
                 dap::send_message(output, &step.content).unwrap();
+                println!("send: {}", &step.content);
             } else {
                 let msg: dap::DapMessage = dap::read_message(input).unwrap();
+                println!("resv: {}", &msg.content);
                 DAPScript::match_message(&msg.content, &step.content);
                 // Some magic base on match result
             }
         }
     }
 
-    fn match_message(expected: &String, actual: &String) -> bool {
-        let expected = json::parse(&expected).unwrap();
-        let actual = json::parse(&actual).unwrap();
+    // TODO
+    fn match_message(_expected: &String, _actual: &String) -> bool {
+        // let expected = json::parse(&expected).unwrap();
+        // let actual = json::parse(&actual).unwrap();
         // TODO compare logic here
-        expected.eq(&actual)
+        // expected.eq(&actual)
+        return true;
     }
 }
 
