@@ -11,7 +11,7 @@ an IDE and a debug adapter.
 DAPKit is useful for IDE and debug adapter developers working with debug adapter protocol.
 
 The application can be used to:
-- Test automation as IDE or debag adapter mock
+- Test automation as IDE or debug adapter mock
 - Create a mock of debug adapter to share with third parties
 - Bug reproducing without sharing the actual debug adapter and target system.
 
